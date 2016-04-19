@@ -9,27 +9,17 @@ var buildResolveCenter = function (opt) {
     var parser = new importCore();
     var resolveMain = function (startFilePath) {
             var combinedMap = [];
-            var fileL = 0;
             var resolveUnit = function (filePath) {
-                fileL++;
-                parser.resolveFile(filePath).then(function (spec) {
-                    fileL--;
-                    combinedMap.push(spec);
-                    if (spec.dependencies.length) {
-                        spec.dependencies.forEach(function (info) {
-                            resolveUnit(info.filePath);
-                        });
-                    }
-
-                    if (fileL <= 0) {
-                        return {status: 'success', data: combinedMap};
-                    }
-                },
-                function (msg) {
-                    return {status: 'error', data: msg};
-                });
+                var spec = parser.resolveFile(filePath);
+                combinedMap.push(spec);
+                if (spec.dependencies.length) {
+                    spec.dependencies.forEach(function (info) {
+                        resolveUnit(info.filePath);
+                    });
+                }
             };
             resolveUnit(startFilePath);
+            return {status: 'success', data: parser.combineFile(combinedMap)};
     };
     return {
         parser: parser,
@@ -43,6 +33,7 @@ var srcImport = function (opt) {
         var fileContent = file.contents.toString();
         if (file.isBuffer()) {
             var resolveResult = resolveGroup.resolve(file.path);
+            console.log(resolveResult.data);
             if (resolveResult.status === 'success') {
                 file.contents = new Buffer(resolveResult.data);
             }

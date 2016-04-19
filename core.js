@@ -38,6 +38,7 @@ importCore.prototype.resolveFile = function (filePath) {
     var fileContent = fs.readFileSync(filePath, {encoding: self.opt.encoding});
     var info = self.resolveFileContent(filePath, fileContent);
     this.fileGroup[filePath] = info;
+    return info;
 };
 
 importCore.prototype.resolveFileContent = function (filePath, fileContent) {
