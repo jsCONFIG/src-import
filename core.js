@@ -89,7 +89,7 @@ importCore.prototype.pureFileContent = function (fileContent, handleMap) {
                 }
                 return prefixSym + ' ' + handleMap[pathParam] + ';';
             }
-            return ';';
+            return '';
         }
         // 非赋值情况直接清除即可
         return prefixSym;
@@ -114,9 +114,9 @@ importCore.prototype.combineFile = function (filesDesc) {
             pureContent = 'var ' + varKey + ' = ' + pureContent;
         }
         else {
-            pureContent = ';' + pureContent;
+            pureContent = pureContent;
         }
-        fileContent.push(pureContent);
+        fileContent.push(';\n' + pureContent);
     });
     return fileContent.join('');
 };
