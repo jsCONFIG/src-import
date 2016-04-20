@@ -1,4 +1,5 @@
 var path = require('path');
+var md5 = require('md5');
 
 var utils = {
     smartyMerge: function (rootObj, newObj, isNumParse) {
@@ -117,12 +118,8 @@ var utils = {
     },
 
     // 发号器
-    keyCreator: function () {
-        // 使用时间戳+随机符的形式生成
-        var timestamp = +(new Date);
-        timestamp = Math.ceil(timestamp / 3600000);
-        var keyArr = (this.unikey(6) + timestamp).match(/.{1,3}/g);
-        return keyArr.join('_');
+    keyCreator: function (absoluteFilePath) {
+        return '_' + md5(absoluteFilePath);
     }
 };
 

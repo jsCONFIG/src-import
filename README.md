@@ -27,3 +27,7 @@ var b = function () {
 - opt.encoding
   
   default: 'utf-8'
+
+- opt.smart
+
+  default: `false`, Set `true` to let `var a = imports('./b');` available.

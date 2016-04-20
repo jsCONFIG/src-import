@@ -7,7 +7,8 @@ var importCore = require('./core');
 
 var buildResolveCenter = function (opt) {
     var parser = new importCore(opt);
-    var resolveMain = function (startFilePath) {
+    var resolveMain = function (file) {
+            var startFilePath = file.path;
             var combinedMap = [];
             var resolveUnit = function (filePath) {
                 var spec = parser.resolveFile(filePath);
@@ -29,11 +30,13 @@ var buildResolveCenter = function (opt) {
 
 var srcImport = function (opt) {
     opt = opt || {};
-    var resolveGroup = buildResolveCenter(opt);
     var processCenter = function (file) {
+        opt.cwd = file.cwd;
+        var resolveGroup = buildResolveCenter(opt);
+        var cwd = file.cwd;
         var fileContent = file.contents.toString();
         if (file.isBuffer()) {
-            var resolveResult = resolveGroup.resolve(file.path);
+            var resolveResult = resolveGroup.resolve(file);
             if (resolveResult.status === 'success') {
                 file.contents = new Buffer(resolveResult.data);
             }

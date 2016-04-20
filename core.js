@@ -5,10 +5,13 @@ var utils = require('./utils');
 
 var importCore = function (opt) {
     this.opt = utils.smartyMerge({
+        cwd: '',
         keyword: 'imports',
         baseDir: '',
         //  是否异步
         async: false,
+        // 自动判断是否赋值替换
+        smart: true,
         encoding: 'utf-8'
     }, opt);
 
@@ -75,24 +78,44 @@ importCore.prototype.resolveFileContent = function (filePath, fileContent) {
     };
 };
 
-importCore.prototype.pureFileContent = function (fileContent) {
+importCore.prototype.pureFileContent = function (fileContent, handleMap) {
     var reg = this.reg;
-    return ';' + fileContent.replace(reg, function (unit, prefixSym, keyword, rubbish, pathParam, index) {
+    var smart = this.opt.smart;
+    return fileContent.replace(reg, function (unit, prefixSym, keyword, rubbish, pathParam, index) {
         if (prefixSym === '=') {
-            return '';
+            if (smart) {
+                if (!handleMap.hasOwnProperty(pathParam)) {
+                    return '/*Not Found: ' + pathParam + '*/';
+                }
+                return prefixSym + ' ' + handleMap[pathParam] + ';';
+            }
+            return ';';
         }
+        // 非赋值情况直接清除即可
         return prefixSym;
     });
 };
 
 importCore.prototype.combineFile = function (filesDesc) {
     this.combineOrder = utils.resolveCombine(filesDesc);
+    var smart = this.opt.smart;
+    var cwd = this.opt.cwd;
     var fileContent = [];
     // 句柄
     var handleMap = {};
+    var needHandleMap = this.needHandleMap;
     var self = this;
     this.combineOrder.forEach(function (fileInfo) {
-        var pureContent = self.pureFileContent(fileInfo.fileContent);
+        var pureContent = self.pureFileContent(fileInfo.fileContent, handleMap);
+        if (smart && needHandleMap[fileInfo.filePath]) {
+            var baseFilePath = fileInfo.filePath.replace(cwd, '');
+            var varKey = utils.keyCreator(baseFilePath);
+            handleMap[fileInfo.filePath] = varKey;
+            pureContent = 'var ' + varKey + ' = ' + pureContent;
+        }
+        else {
+            pureContent = ';' + pureContent;
+        }
         fileContent.push(pureContent);
     });
     return fileContent.join('');
