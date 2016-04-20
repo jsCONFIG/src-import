@@ -42,7 +42,7 @@ var srcImport = function (opt) {
             }
         }
 
-        this.emit('data', file);
+        this.emit('data', file.contents);
     };
 
     return evts.through(processCenter);
