@@ -2,6 +2,7 @@
 source combine for gulp
 
 # example
+## Normal
 ```
 gulp.task('src-import', function () {
   gulp.src(['devFile.js'])
@@ -17,6 +18,16 @@ var b = function () {
   console.log('Hello src-import');
 };
 ```
+or
+
+devFile2.js
+```
+var test1 = imports('./test1.js');
+var b = function () {
+  console.log('Hello src-import');
+};
+```
+
 
 # options
 
