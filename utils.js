@@ -32,7 +32,7 @@ var utils = {
     },
 
     regGenerator: function (keyword) {
-        return new RegExp(['(\\S?)\\s*(', keyword, ')\\((\'|")([^"\'*:><?\\|]+)\\3\\);?'].join(''), 'g');
+        return new RegExp(['(\\S?)\\s*(', keyword, ')\\((\'|")\\s*([^"\'*:><?\\|]+)\\3\\s*\\);?'].join(''), 'g');
     },
 
     // 从匹配中解析出信息

@@ -30,4 +30,4 @@ var b = function () {
 
 - opt.smart
 
-  default: `false`, Set `true` to let `var a = imports('./b');` available.
+  default: `true`, Set `true` to let `var a = imports('./b');` available.
