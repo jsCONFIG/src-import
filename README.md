@@ -1,4 +1,9 @@
-# src-import
+src-import
+==========
+
+[![srcImport](http://img.shields.io/npm/v/src-import.svg)](https://www.npmjs.org/package/src-import)
+[![srcImport](http://img.shields.io/npm/dm/src-import.svg)](https://www.npmjs.org/package/src-import)
+
 source combine for gulp
 
 # example
