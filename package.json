@@ -1,6 +1,6 @@
 {
     "name": "src-import",
-    "version": "0.0.4",
+    "version": "0.0.5",
     "description": "files combine",
     "main": "index.js",
     "scripts": {},
@@ -30,8 +30,10 @@
         "url": "https://github.com/jsCONFIG/src-import/issues"
     },
     "dependencies": {
+        "promise": "7.1.1",
         "gulp-util": "~2.2.9",
         "md5": "2.1.0",
-        "event-stream": "~3.1.0"
+        "event-stream": "~3.1.0",
+        "default-extname": "latest"
     }
 }

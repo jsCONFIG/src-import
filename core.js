@@ -2,18 +2,22 @@ var fs = require('fs');
 var Promise = require('promise');
 var path = require('path');
 var utils = require('./utils');
+var defaultExtname = require('default-extname');
+var defExt = defaultExtname();
 
 var importCore = function (opt) {
     this.opt = utils.smartyMerge({
         cwd: '',
         keyword: 'imports',
-        baseDir: '',
+        basedir: '',
         //  是否异步
         async: false,
         // 自动判断是否赋值替换
         smart: true,
         encoding: 'utf-8'
     }, opt);
+
+    this.rootDir = path.join(this.opt.cwd, this.opt.basedir);
 
     this.reg = utils.regGenerator(this.opt.keyword);
     this.fileGroup = {};
@@ -22,6 +26,8 @@ var importCore = function (opt) {
 };
 
 importCore.prototype.resolveFile = function (filePath) {
+    var opt = this.opt;
+    filePath = defExt.resolveFilePath(filePath);
     var self = this;
     if (this.opt.async) {
         return new Promise(function (resolve, reject) {
@@ -38,15 +44,25 @@ importCore.prototype.resolveFile = function (filePath) {
             });
         });
     }
-    var fileContent = fs.readFileSync(filePath, {encoding: self.opt.encoding});
+    try {
+        var fileContent = fs.readFileSync(filePath, {encoding: self.opt.encoding});
+    }
+    catch (e) {
+        fileContent = utils.notFoundMsg(filePath);
+        console.log(e);
+    }
     var info = self.resolveFileContent(filePath, fileContent);
     this.fileGroup[filePath] = info;
     return info;
 };
 
 importCore.prototype.resolveFileContent = function (filePath, fileContent) {
+    filePath = defExt.resolveFilePath(filePath);
     fileContent = fileContent.toString();
     var reg = this.reg;
+    var opt = this.opt;
+    var cwd = opt.cwd;
+    var basedir = opt.basedir || '';
     var needHandleMap = this.needHandleMap;
     var matchArr;
     var dependencies = [];
@@ -59,7 +75,7 @@ importCore.prototype.resolveFileContent = function (filePath, fileContent) {
             // 仅导入(非赋值)
             justImport: prefixSym !== '=',
             pathParam: pathParam
-        }, utils.resolvePath(filePath, pathParam));
+        }, utils.resolvePath(filePath, pathParam, cwd, basedir));
 
         if (!needHandleMap[info.filePath]) {
             needHandleMap[info.filePath] = !info.justImport;
@@ -84,8 +100,9 @@ importCore.prototype.pureFileContent = function (fileContent, handleMap) {
     return fileContent.replace(reg, function (unit, prefixSym, keyword, rubbish, pathParam, index) {
         if (prefixSym === '=') {
             if (smart) {
+                pathParam = defExt.resolveFilePath(pathParam);
                 if (!handleMap.hasOwnProperty(pathParam)) {
-                    return '/*Not Found: ' + pathParam + '*/';
+                    return utils.notFoundMsg(pathParam);
                 }
                 return prefixSym + ' ' + handleMap[pathParam] + ';';
             }
@@ -105,18 +122,19 @@ importCore.prototype.combineFile = function (filesDesc) {
     var handleMap = {};
     var needHandleMap = this.needHandleMap;
     var self = this;
-    this.combineOrder.forEach(function (fileInfo) {
+    this.combineOrder.forEach(function (fileInfo, index) {
+        var filePath = defExt.resolveFilePath(fileInfo.filePath);
         var pureContent = self.pureFileContent(fileInfo.fileContent, handleMap);
-        if (smart && needHandleMap[fileInfo.filePath]) {
-            var baseFilePath = fileInfo.filePath.replace(cwd, '');
+        if (smart && needHandleMap[filePath]) {
+            var baseFilePath = filePath.replace(cwd, '');
             var varKey = utils.keyCreator(baseFilePath);
-            handleMap[fileInfo.filePath] = varKey;
+            handleMap[filePath] = varKey;
             pureContent = 'var ' + varKey + ' = ' + pureContent;
         }
         else {
             pureContent = pureContent;
         }
-        fileContent.push(';\n' + pureContent);
+        fileContent.push(';' + pureContent +  '\n');
     });
     return fileContent.join('');
 };

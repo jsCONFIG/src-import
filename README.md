@@ -47,3 +47,13 @@ var b = function () {
 - opt.smart
 
   default: `true`, Set `true` to let `var a = imports('./b');` available.
+
+- opt.basedir
+
+  `basedir` for combine.
+
+# changelog
+
+- Better error handling;
+
+- Add `opt.basedir`

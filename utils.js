@@ -1,5 +1,7 @@
 var path = require('path');
 var md5 = require('md5');
+var defaultExtname = require('default-extname');
+var defExt = defaultExtname();
 
 var utils = {
     smartyMerge: function (rootObj, newObj, isNumParse) {
@@ -52,32 +54,31 @@ var utils = {
     },
 
     fixFilePath: function (fPath) {
+        fPath = defExt.resolveFilePath(fPath);
         var newExtname = path.extname(fPath);
-        var extCopyName = newExtname;
-        if (!newExtname.length || newExtname === '.') {
-            extCopyName = newExtname = '.js';
-        }
-        else {
-            newExtname = '';
-        }
-        fPath = fPath + newExtname;
         return {
             path: fPath,
-            extname: extCopyName
+            extname: newExtname
         };
     },
 
-    resolvePath: function (currentFilePath, anotherPathParam) {
+    // 仅在解析文件内容中的依赖时使用
+    resolvePath: function (currentFilePath, anotherPathParam, cwd, baseDir) {
+        anotherPathParam = defExt.resolveFilePath(anotherPathParam);
         var currentFilePathDir = path.dirname(currentFilePath);
-        var absolutePath = path.resolve(currentFilePathDir, anotherPathParam);
-        var fileInfo = this.fixFilePath(absolutePath);
-        var extname = fileInfo.extname;
-        absolutePath = fileInfo.path;
+        var newFilePath;
+        if (path.isAbsolute(anotherPathParam)) {
+            newFilePath = path.join(cwd, baseDir, anotherPathParam);
+        }
+        else {
+            newFilePath = path.resolve(currentFilePathDir, anotherPathParam);
+        }
+        var extname = path.extname(newFilePath);
 
         return {
-            dir: path.dirname(absolutePath),
-            file: path.basename(absolutePath),
-            filePath: absolutePath,
+            dir: path.dirname(newFilePath),
+            file: path.basename(newFilePath),
+            filePath: newFilePath,
             extname: extname
         };
     },
@@ -120,6 +121,24 @@ var utils = {
     // 发号器
     keyCreator: function (absoluteFilePath) {
         return '_' + md5(absoluteFilePath);
+    },
+
+    notFoundMsg: function (filePath) {
+        return '/*Not Found: ' + filePath + '*/';
+    },
+
+    // 预处理参数
+    preParseParam: function (pathParam, baseDir) {
+        pathParam = path.join(baseDir, pathParam);
+        return defExt.resolveFilePath(pathParam);
+    },
+
+    mdwFilePath: function (filePath, cwd) {
+        filePath = defExt.resolveFilePath(filePath);
+        if (filePath.indexOf(cwd) === -1) {
+            filePath =  path.join(cwd, filePath);
+        }
+        return filePath;
     }
 };
 
