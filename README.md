@@ -52,8 +52,6 @@ var b = function () {
 
   `basedir` for combine.
 
-# changelog
+# changelog V0.0.6
 
-- Better error handling;
-
-- Add `opt.basedir`
+- Gather temporary handler for `smart`;

@@ -14,6 +14,8 @@ var importCore = function (opt) {
         async: false,
         // 自动判断是否赋值替换
         smart: true,
+        // 赋值时的临时句柄，此句柄放置在window上
+        smartHandle: '__src_import__',
         encoding: 'utf-8'
     }, opt);
 
@@ -23,6 +25,16 @@ var importCore = function (opt) {
     this.fileGroup = {};
     // 被等于的模块地图
     this.needHandleMap = {};
+};
+
+importCore.prototype.setSmartHandle = function (key) {
+    var smartHandle = this.opt.smartHandle;
+    return ['(window["', smartHandle, '"] = (window["', smartHandle, '"] || {}))["', key, '"]'].join('');
+};
+
+importCore.prototype.getSmartHandle = function (key) {
+    var smartHandle = this.opt.smartHandle;
+    return ['(window["', smartHandle, '"] || {})["', key, '"]'].join('');
 };
 
 importCore.prototype.resolveFile = function (filePath) {
@@ -97,6 +109,7 @@ importCore.prototype.resolveFileContent = function (filePath, fileContent) {
 importCore.prototype.pureFileContent = function (fileContent, handleMap) {
     var reg = this.reg;
     var smart = this.opt.smart;
+    var self = this;
     return fileContent.replace(reg, function (unit, prefixSym, keyword, rubbish, pathParam, index) {
         if (prefixSym === '=') {
             if (smart) {
@@ -104,7 +117,7 @@ importCore.prototype.pureFileContent = function (fileContent, handleMap) {
                 if (!handleMap.hasOwnProperty(pathParam)) {
                     return utils.notFoundMsg(pathParam);
                 }
-                return prefixSym + ' ' + handleMap[pathParam] + ';';
+                return prefixSym + ' ' + self.getSmartHandle(handleMap[pathParam]) + ';';
             }
             return '';
         }
@@ -129,7 +142,7 @@ importCore.prototype.combineFile = function (filesDesc) {
             var baseFilePath = filePath.replace(cwd, '');
             var varKey = utils.keyCreator(baseFilePath);
             handleMap[filePath] = varKey;
-            pureContent = 'var ' + varKey + ' = ' + pureContent;
+            pureContent = self.setSmartHandle(varKey) + ' = ' + pureContent;
         }
         else {
             pureContent = pureContent;
